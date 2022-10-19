@@ -28,7 +28,7 @@
  * @brief    Rotary encoder functions
  *****************************************************************************/
 
-#include "../../inc/MarlinConfigPre.h"
+#include "../../../inc/MarlinConfigPre.h"
 
 #if ENABLED(DWIN_CREALITY_LCD_ALEXQZDUI)
 
