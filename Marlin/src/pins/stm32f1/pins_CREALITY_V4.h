@@ -84,7 +84,11 @@
   #define Y_STOP_PIN                        PA6
 #endif
 #ifndef Z_STOP_PIN
-  #define Z_STOP_PIN                        -1    // Endstop pin used as click pin for mini 12864 because aquila board has problem with PB2 
+  #if ENABLED(FYSETC_MINI_12864_2_1)
+    #define Z_STOP_PIN                        -1    // Endstop pin used as click pin for mini 12864 because aquila board has problem with PB2 
+  #else
+    #define Z_STOP_PIN                        PA7
+  #endif
 #endif
 
 #ifndef Z_MIN_PROBE_PIN
@@ -174,7 +178,11 @@
    *        ------
    */
   #define EXP3_01_PIN                     PC6
-  #define EXP3_02_PIN                     PA7
+  #if ENABLED(FYSETC_MINI_12864_2_1)
+    #define EXP3_02_PIN                     PA7
+  #else
+    #define EXP3_02_PIN                     PB2
+  #endif
   #define EXP3_03_PIN                     PB10
   #define EXP3_04_PIN                     PB11
   #define EXP3_05_PIN                     PB14
