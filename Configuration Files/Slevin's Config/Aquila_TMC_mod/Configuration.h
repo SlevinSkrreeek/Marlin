@@ -662,7 +662,7 @@
     #define DEFAULT_Ki_LIST {   2.62,   2.62 }
     #define DEFAULT_Kd_LIST {  78.81,  78.81 }
   #else
-    // Ender 3 v2
+    // Aquila
     #define DEFAULT_Kp  28.72
     #define DEFAULT_Ki   2.62
     #define DEFAULT_Kd  78.81
@@ -746,7 +746,7 @@
   //#define MIN_BED_POWER 0
   //#define PID_BED_DEBUG // Print Bed PID debug data to the serial port.
 
-  // Ender 3 V2
+  // Aquila
   #define DEFAULT_bedKp 462.10
   #define DEFAULT_bedKi  85.47
   #define DEFAULT_bedKd 624.59
