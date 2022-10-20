@@ -766,9 +766,9 @@
 /**
  * Maple environment
  */
-#ifdef __STM32F1__
-  #ifndef VOXELAB_N32
-    #warning "Maple build environments are deprecated. Please use a non-Maple build environment. Report issues to the Marlin Firmware project."
+#ifndef NO_MAPLE_WARNING
+  #ifdef __STM32F1__
+      #warning "Maple build environments are deprecated. Please use a non-Maple build environment. Report issues to the Marlin Firmware project. (Define NO_MAPLE_WARNING to suppress this warning.)"
   #endif
 #endif
 
