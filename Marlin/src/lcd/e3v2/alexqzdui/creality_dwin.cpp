@@ -1078,6 +1078,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             Draw_Menu(HomeMenu);
           }
           break;
+        #if EITHER(Z_STEPPER_AUTO_ALIGN,MECHANICAL_GANTRY_CALIBRATION)
         case PREPARE_AUTO_Z_ALIGN:
           if (draw) {
             Draw_Menu_Item(row, ICON_MoveZ, FTOP(GET_TEXT_F(MSG_AUTO_Z_ALIGN)));
@@ -1089,6 +1090,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             Redraw_Menu();
           }
           break;
+        #endif
         case PREPARE_MANUALLEVEL:
           if (draw) {
             Draw_Menu_Item(row, ICON_PrintSize, "Manual Leveling", NULL, true);
@@ -3231,21 +3233,23 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               }
               break;
             #if ENABLED(BLTOUCH)
-              case PROBE_HSMODE:
-                if (draw) {
-                  Draw_Menu_Item(row, ICON_StockConfiguraton, FTOP(GET_TEXT_F(MSG_ENABLE_HS_MODE)));
-                  Draw_Checkbox(row, bltouch.high_speed_mode);
-                }
-                else {
-                  bltouch.high_speed_mode = !bltouch.high_speed_mode;
-                  Draw_Checkbox(row, bltouch.high_speed_mode);
-                }
-                break;
-                #if ENABLED(BLTOUCH_FORCE_SW_MODE)
-                  case PROBE_SWMODE:
-                    Draw_Menu_Item(row, ICON_StockConfiguraton, FTOP(GET_TEXT_F(MSG_BLTOUCH_SW_MODE)));
+              #if ENABLED(BLTOUCH_HS_MODE)
+                case PROBE_HSMODE:
+                  if (draw) {
+                    Draw_Menu_Item(row, ICON_StockConfiguraton, FTOP(GET_TEXT_F(MSG_ENABLE_HS_MODE)));
+                    Draw_Checkbox(row, bltouch.high_speed_mode);
+                  }
+                  else {
+                    bltouch.high_speed_mode = !bltouch.high_speed_mode;
+                    Draw_Checkbox(row, bltouch.high_speed_mode);
+                  }
                   break;
-                #endif
+              #endif
+              #if ENABLED(BLTOUCH_FORCE_SW_MODE)
+                case PROBE_SWMODE:
+                  Draw_Menu_Item(row, ICON_StockConfiguraton, FTOP(GET_TEXT_F(MSG_BLTOUCH_SW_MODE)));
+                break;
+              #endif
             #endif
             case PROBE_TEST:
               if (draw) {
