@@ -27,7 +27,7 @@
 
 #include "../../../inc/MarlinConfigPre.h"
 
-#if HAS_DWIN_E3V2 && DISABLED(DWIN_CREALITY_LCD_ALEXQZDUI)
+#if HAS_DWIN_E3V2
 
 #include "encoder.h"
 #include "../../buttons.h"
