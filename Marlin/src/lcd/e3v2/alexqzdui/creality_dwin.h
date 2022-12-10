@@ -27,7 +27,7 @@
  */
 
 #include "dwin.h"
-#include "rotary_encoder.h"
+#include "../common/encoder.h"
 #include "../../libs/BL24CXX.h"
 #include "../../inc/MarlinConfigPre.h"
 
