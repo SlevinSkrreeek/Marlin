@@ -89,6 +89,13 @@
   #include "../../feature/powerloss.h"
 #endif
 
+#if HAS_TRINAMIC_CONFIG
+  #include "../../../module/stepper/trinamic.h"
+
+  #define TMC_MIN_CURRENT 400
+  #define TMC_MAX_CURRENT 1500
+#endif
+
 #if ENABLED(DWIN_CREALITY_LCD_ALEXQZDUI_GCODE_PREVIEW)
   #include "../../libs/base64.hpp"
   #include <map>
@@ -2623,7 +2630,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Float(planner.flow_percentage[0], row, false, 1);
             }
             else {
-              Modify_Value(planner.flow_percentage[0], MIN_FLOW_RATE, MAX_FLOW_RATE, 1);
+              Modify_Value(planner.flow_percentage[0], MIN_FLOW_RATE, MAX_FLOW_RATE, 1, []{ planner.refresh_e_factor(0); });
             }
             break;
         #endif
@@ -3099,7 +3106,8 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
       #define ADVANCED_BACK 0
       #define ADVANCED_BEEPER (ADVANCED_BACK + 1)
       #define ADVANCED_PROBE (ADVANCED_BEEPER + ENABLED(HAS_BED_PROBE))
-      #define ADVANCED_CORNER (ADVANCED_PROBE + 1)
+      #define ADVANCED_TMC (ADVANCED_PROBE + ENABLED(HAS_TRINAMIC_CONFIG))
+      #define ADVANCED_CORNER (ADVANCED_TMC + 1)
       #define ADVANCED_LA (ADVANCED_CORNER + ENABLED(LIN_ADVANCE))
       #define ADVANCED_LOAD (ADVANCED_LA + ENABLED(ADVANCED_PAUSE_FEATURE))
       #define ADVANCED_UNLOAD (ADVANCED_LOAD + ENABLED(ADVANCED_PAUSE_FEATURE))
@@ -3136,6 +3144,14 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
             else {
               Draw_Menu(ProbeMenu);
             }
+            break;
+        #endif
+        #if HAS_TRINAMIC_CONFIG
+          case ADVANCED_TMC:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Motion, "TMC Drivers", NULL, true);
+            else
+              Draw_Menu(TMCMenu);
             break;
         #endif
         case ADVANCED_CORNER:
@@ -3308,7 +3324,93 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               break;
         }
         break;
-    #endif
+    #endif  // HAS_PROBE_MENU
+
+    #if HAS_TRINAMIC_CONFIG
+      case TMCMenu:
+
+        #define TMC_BACK 0
+        #define TMC_STEPPER_CURRENT_X (TMC_BACK + AXIS_IS_TMC(X))
+        #define TMC_STEPPER_CURRENT_Y (TMC_STEPPER_CURRENT_X + AXIS_IS_TMC(Y))
+        #define TMC_STEPPER_CURRENT_Z (TMC_STEPPER_CURRENT_Y + AXIS_IS_TMC(Z))
+        #define TMC_STEPPER_CURRENT_E (TMC_STEPPER_CURRENT_Z + AXIS_IS_TMC(E0))
+        #define TMC_TOTAL TMC_STEPPER_CURRENT_E
+
+        switch (item) {
+
+          case TMC_BACK:
+            if (draw)
+              Draw_Menu_Item(row, ICON_Back, "Back");
+            else
+              Draw_Menu(Advanced, ADVANCED_TMC);
+            break;
+
+          #if AXIS_IS_TMC(X)
+            case TMC_STEPPER_CURRENT_X:
+
+              static float stepper_current_x;
+
+              if (draw) {
+                Draw_Menu_Item(row, ICON_StepX, "Stepper X current");
+                stepper_current_x = stepperX.getMilliamps();
+                Draw_Float(stepper_current_x, row, false, 1);
+              }
+              else {
+                Modify_Value(stepper_current_x, TMC_MIN_CURRENT, TMC_MAX_CURRENT, 1, []{ stepperX.rms_current(stepper_current_x); });
+              }
+              break;
+          #endif
+
+          #if AXIS_IS_TMC(Y)
+            case TMC_STEPPER_CURRENT_Y:
+
+              static float stepper_current_y;
+
+              if (draw) {
+                Draw_Menu_Item(row, ICON_StepY, "Stepper Y current");
+                stepper_current_y = stepperY.getMilliamps();
+                Draw_Float(stepper_current_y, row, false, 1);
+              }
+              else {
+                Modify_Value(stepper_current_y, TMC_MIN_CURRENT, TMC_MAX_CURRENT, 1, []{ stepperY.rms_current(stepper_current_y); });
+              }
+              break;
+          #endif
+
+          #if AXIS_IS_TMC(Z)
+            case TMC_STEPPER_CURRENT_Z:
+
+              static float stepper_current_z;
+
+              if (draw) {
+                Draw_Menu_Item(row, ICON_StepZ, "Stepper Z current");
+                stepper_current_z = stepperZ.getMilliamps();
+                Draw_Float(stepper_current_z, row, false, 1);
+              }
+              else {
+                Modify_Value(stepper_current_z, TMC_MIN_CURRENT, TMC_MAX_CURRENT, 1, []{ stepperZ.rms_current(stepper_current_z); });
+              }
+              break;
+          #endif
+
+          #if AXIS_IS_TMC(E0)
+            case TMC_STEPPER_CURRENT_E:
+
+              static float stepper_current_e;
+
+              if (draw) {
+                Draw_Menu_Item(row, ICON_StepE, "Stepper E current");
+                stepper_current_e = stepperE0.getMilliamps();
+                Draw_Float(stepper_current_e, row, false, 1);
+              }
+              else {
+                Modify_Value(stepper_current_e, TMC_MIN_CURRENT, TMC_MAX_CURRENT, 1, []{ stepperE0.rms_current(stepper_current_e); });
+              }
+              break;
+          #endif
+        };
+        break;
+    #endif // HAS_TRINAMIC_CONFIG
 
     case InfoMain:
     case Info:
@@ -4107,7 +4209,7 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
               Draw_Float(planner.flow_percentage[0], row, false, 1);
             }
             else {
-              Modify_Value(planner.flow_percentage[0], MIN_FLOW_RATE, MAX_FLOW_RATE, 1);
+              Modify_Value(planner.flow_percentage[0], MIN_FLOW_RATE, MAX_FLOW_RATE, 1, []{ planner.refresh_e_factor(0); });
             }
             break;
           case TUNE_HOTEND:
@@ -4354,230 +4456,159 @@ void CrealityDWINClass::Menu_Item_Handler(uint8_t menu, uint8_t item, bool draw/
 
 const char * CrealityDWINClass::Get_Menu_Title(uint8_t menu) {
   switch(menu) {
-    case MainMenu:
-      return "Main Menu";
-    case Prepare:
-      return "Prepare";
-    case HomeMenu:
-      return "Homing Menu";
-    case Move:
-      return "Move";
-    case ManualLevel:
-      return "Manual Leveling";
+    case MainMenu:          return "Main Menu";
+    case Prepare:           return "Prepare";
+    case HomeMenu:          return "Homing Menu";
+    case Move:              return "Move";
+    case ManualLevel:       return "Manual Leveling";
     #if HAS_ZOFFSET_ITEM
-      case ZOffset:
-        return "Z Offset";
+      case ZOffset:         return "Z Offset";
     #endif
     #if HAS_PREHEAT
-      case Preheat:
-        return "Preheat";
+      case Preheat:         return "Preheat";
     #endif
     #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
-      case ChangeFilament:
-        return "Change Filament";
+      case ChangeFilament:  return "Change Filament";
     #endif
-    case Control:
-      return "Control";
-    case TempMenu:
-      return "Temperature";
+    case Control:           return "Control";
+    case TempMenu:          return "Temperature";
     #if ANY(HAS_HOTEND, HAS_HEATED_BED)
-      case PID:
-        return "PID Menu";
+      case PID:             return "PID Menu";
     #endif
     #if HAS_HOTEND
-      case HotendPID:
-        return "Hotend PID Settings";
+      case HotendPID:       return "Hotend PID Settings";
     #endif
     #if HAS_HEATED_BED
-      case BedPID:
-        return "Bed PID Settings";
+      case BedPID:          return "Bed PID Settings";
     #endif
     #if (PREHEAT_COUNT >= 1)
-      case Preheat1:
-        return (PREHEAT_1_LABEL " Settings");
+      case Preheat1:        return (PREHEAT_1_LABEL " Settings");
     #endif
     #if (PREHEAT_COUNT >= 2)
-      case Preheat2:
-        return (PREHEAT_2_LABEL " Settings");
+      case Preheat2:        return (PREHEAT_2_LABEL " Settings");
     #endif
     #if (PREHEAT_COUNT >= 3) 
-      case Preheat3:
-        return (PREHEAT_3_LABEL " Settings");
+      case Preheat3:        return (PREHEAT_3_LABEL " Settings");
     #endif
     #if (PREHEAT_COUNT >= 4)
-      case Preheat4:
-        return (PREHEAT_4_LABEL " Settings");
+      case Preheat4:        return (PREHEAT_4_LABEL " Settings");
     #endif
     #if (PREHEAT_COUNT >= 5)
-      case Preheat5:
-        return (PREHEAT_5_LABEL " Settings");
+      case Preheat5:        return (PREHEAT_5_LABEL " Settings");
     #endif
-    case Motion:
-      return "Motion Settings";
-    case HomeOffsets:
-      return "Home Offsets";
-    case MaxSpeed:
-      return "Max Speed";
-    case MaxAcceleration:
-      return "Max Acceleration";
+    case Motion:            return "Motion Settings";
+    case HomeOffsets:       return "Home Offsets";
+    case MaxSpeed:          return "Max Speed";
+    case MaxAcceleration:   return "Max Acceleration";
     #if HAS_CLASSIC_JERK
-      case MaxJerk:
-        return "Max Jerk";
+      case MaxJerk:         return "Max Jerk";
     #endif
-    case Steps:
-      return "Steps/mm";
-    case Visual:
-      return "Visual Settings";
-    case Advanced:
-      return "Advanced Settings";
+    case Steps:             return "Steps/mm";
+    case Visual:            return "Visual Settings";
+    case Advanced:          return "Advanced Settings";
     #if HAS_BED_PROBE
-      case ProbeMenu:
-        return "Probe Menu";
+      case ProbeMenu:       return "Bed Probe";
     #endif
-    case ColorSettings:
-      return "UI Color Settings";
-    case Info:
-      return "Info";
-    case InfoMain:
-      return "Info";
+    #if HAS_TRINAMIC_CONFIG
+      case TMCMenu:         return "TMC Drivers";
+    #endif
+    case ColorSettings:     return "UI Color Settings";
+    case Info:              return "Info";
+    case InfoMain:          return "Info";
     #if HAS_MESH
-      case Leveling:
-        return "Leveling";
-      case LevelView:
-        return "Mesh View";
-      case LevelSettings:
-        return "Leveling Settings";
-      case MeshViewer:
-        return "Mesh Viewer";
-      case LevelManual:
-        return "Manual Tuning";
+      case Leveling:        return "Leveling";
+      case LevelView:       return "Mesh View";
+      case LevelSettings:   return "Leveling Settings";
+      case MeshViewer:      return "Mesh Viewer";
+      case LevelManual:     return "Manual Tuning";
     #endif
     #if ENABLED(AUTO_BED_LEVELING_UBL) && !HAS_BED_PROBE
-      case UBLMesh:
-        return "UBL Bed Leveling";
+      case UBLMesh:         return "UBL Bed Leveling";
     #endif
     #if ENABLED(PROBE_MANUALLY)
-      case ManualMesh:
-        return "Mesh Bed Leveling";
+      case ManualMesh:      return "Mesh Bed Leveling";
     #endif
-    case Tune:
-      return "Tune";
-    case PreheatHotend:
-      return "Preheat Hotend";
+    case Tune:              return "Tune";
+    case PreheatHotend:     return "Preheat Hotend";
   }
   return "";
 }
 
 uint8_t CrealityDWINClass::Get_Menu_Size(uint8_t menu) {
   switch(menu) {
-    case Prepare:
-      return PREPARE_TOTAL;
-    case HomeMenu:
-      return HOME_TOTAL;
-    case Move:
-      return MOVE_TOTAL;
-    case ManualLevel:
-      return MLEVEL_TOTAL;
+    case Prepare:           return PREPARE_TOTAL;
+    case HomeMenu:          return HOME_TOTAL;
+    case Move:              return MOVE_TOTAL;
+    case ManualLevel:       return MLEVEL_TOTAL;
     #if HAS_ZOFFSET_ITEM
-      case ZOffset:
-        return ZOFFSET_TOTAL;
+      case ZOffset:         return ZOFFSET_TOTAL;
     #endif
     #if HAS_PREHEAT
-      case Preheat:
-        return PREHEAT_TOTAL;
+      case Preheat:         return PREHEAT_TOTAL;
     #endif
     #if ENABLED(FILAMENT_LOAD_UNLOAD_GCODES)
-      case ChangeFilament:
-        return CHANGEFIL_TOTAL;
+      case ChangeFilament:  return CHANGEFIL_TOTAL;
     #endif
-    case Control:
-      return CONTROL_TOTAL;
-    case TempMenu:
-      return TEMP_TOTAL;
+    case Control:           return CONTROL_TOTAL;
+    case TempMenu:          return TEMP_TOTAL;
     #if ANY(HAS_HOTEND, HAS_HEATED_BED)
-      case PID:
-        return PID_TOTAL;
+      case PID:             return PID_TOTAL;
     #endif
     #if HAS_HOTEND
-      case HotendPID:
-        return HOTENDPID_TOTAL;
+      case HotendPID:       return HOTENDPID_TOTAL;
     #endif
     #if BOTH(HAS_HEATED_BED, PIDTEMPBED)
-      case BedPID:
-        return BEDPID_TOTAL;
+      case BedPID:          return BEDPID_TOTAL;
     #endif
     #if (PREHEAT_COUNT >= 1)
-      case Preheat1:
-        return PREHEAT1_TOTAL;
+      case Preheat1:        return PREHEAT1_TOTAL;
     #endif
     #if (PREHEAT_COUNT >= 2)
-      case Preheat2:
-        return PREHEAT2_TOTAL;
+      case Preheat2:        return PREHEAT2_TOTAL;
     #endif
     #if (PREHEAT_COUNT >= 3)
-      case Preheat3:
-        return PREHEAT3_TOTAL;
+      case Preheat3:        return PREHEAT3_TOTAL;
     #endif
     #if (PREHEAT_COUNT >= 4)
-      case Preheat4:
-        return PREHEAT4_TOTAL;
+      case Preheat4:        return PREHEAT4_TOTAL;
     #endif
     #if (PREHEAT_COUNT >= 5)
-      case Preheat5:
-        return PREHEAT5_TOTAL;
+      case Preheat5:        return PREHEAT5_TOTAL;
     #endif
-    case Motion:
-      return MOTION_TOTAL;
-    case HomeOffsets:
-      return HOMEOFFSETS_TOTAL;
-    case MaxSpeed:
-      return SPEED_TOTAL;
-    case MaxAcceleration:
-      return ACCEL_TOTAL;
+    case Motion:            return MOTION_TOTAL;
+    case HomeOffsets:       return HOMEOFFSETS_TOTAL;
+    case MaxSpeed:          return SPEED_TOTAL;
+    case MaxAcceleration:   return ACCEL_TOTAL;
     #if HAS_CLASSIC_JERK
-      case MaxJerk:
-        return JERK_TOTAL;
+      case MaxJerk:         return JERK_TOTAL;
     #endif
-    case Steps:
-      return STEPS_TOTAL;
-    case Visual:
-      return VISUAL_TOTAL;
-    case Advanced:
-      return ADVANCED_TOTAL;
+    case Steps:             return STEPS_TOTAL;
+    case Visual:            return VISUAL_TOTAL;
+    case Advanced:          return ADVANCED_TOTAL;
     #if HAS_BED_PROBE
-      case ProbeMenu:
-        return PROBE_TOTAL;
+      case ProbeMenu:       return PROBE_TOTAL;
     #endif
-    case Info:
-      return INFO_TOTAL;
-    case InfoMain:
-      return INFO_TOTAL;
+    #if HAS_TRINAMIC_CONFIG
+      case TMCMenu:         return TMC_TOTAL;
+    #endif
+    case Info:              return INFO_TOTAL;
+    case InfoMain:          return INFO_TOTAL;
     #if ENABLED(AUTO_BED_LEVELING_UBL) && !HAS_BED_PROBE
-      case UBLMesh:
-        return UBL_M_TOTAL;
+      case UBLMesh:         return UBL_M_TOTAL;
     #endif
     #if ENABLED(PROBE_MANUALLY)
-      case ManualMesh:
-        return MMESH_TOTAL;
+      case ManualMesh:      return MMESH_TOTAL;
     #endif
     #if HAS_MESH
-      case Leveling:
-        return LEVELING_TOTAL;
-      case LevelView:
-        return LEVELING_VIEW_TOTAL;
-      case LevelSettings:
-        return LEVELING_SETTINGS_TOTAL;
-      case MeshViewer:
-        return MESHVIEW_TOTAL;
-      case LevelManual:
-        return LEVELING_M_TOTAL;
+      case Leveling:        return LEVELING_TOTAL;
+      case LevelView:       return LEVELING_VIEW_TOTAL;
+      case LevelSettings:   return LEVELING_SETTINGS_TOTAL;
+      case MeshViewer:      return MESHVIEW_TOTAL;
+      case LevelManual:     return LEVELING_M_TOTAL;
     #endif
-    case Tune:
-      return TUNE_TOTAL;
-    case PreheatHotend:
-      return PREHEATHOTEND_TOTAL;
-    case ColorSettings:
-      return COLORSETTINGS_TOTAL;  
+    case Tune:              return TUNE_TOTAL;
+    case PreheatHotend:     return PREHEATHOTEND_TOTAL;
+    case ColorSettings:     return COLORSETTINGS_TOTAL;  
   }
   return 0;
 }
@@ -4802,9 +4833,6 @@ void CrealityDWINClass::Value_Control() {
           mesh_conf.manual_move(selection == LEVELING_M_OFFSET);
           break;
       #endif
-    }
-    if (valuepointer == &planner.flow_percentage[0]) {
-      planner.refresh_e_factor(0);
     }
     if (funcpointer) funcpointer();
     return;

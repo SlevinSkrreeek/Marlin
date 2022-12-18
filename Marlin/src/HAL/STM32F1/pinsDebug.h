@@ -54,6 +54,10 @@ extern const stm32_pin_info PIN_MAP[BOARD_NR_GPIO_PINS];
   #define M43_NEVER_TOUCH(Q) (Q >= 9 && Q <= 12) // SERIAL/USB pins PA9(TX) PA10(RX)
 #endif
 
+static int8_t get_pin_mode(pin_t pin) {
+  return VALID_PIN(pin) ? _GET_MODE(pin) : -1;
+}
+
 static pin_t DIGITAL_PIN_TO_ANALOG_PIN(pin_t pin) {
   if (!VALID_PIN(pin)) return -1;
   int8_t adc_channel = int8_t(PIN_MAP[pin].adc_channel);
