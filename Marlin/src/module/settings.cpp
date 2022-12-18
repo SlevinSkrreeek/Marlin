@@ -2143,6 +2143,25 @@ void MarlinSettings::postprocess() {
       }
 
       //
+      // LCD Backlight / Sleep Timeout
+      //
+      #if LCD_BACKLIGHT_TIMEOUT_MINS
+        EEPROM_READ(ui.backlight_timeout_minutes);
+      #elif HAS_DISPLAY_SLEEP
+        EEPROM_READ(ui.sleep_timeout_minutes);
+      #endif
+
+      //
+      // Controller Fan
+      //
+      {
+        controllerFan_settings_t cfs = { 0 };
+        _FIELD_TEST(controllerFan_settings);
+        EEPROM_READ(cfs);
+        TERN_(CONTROLLER_FAN_EDITABLE, if (!validating) controllerFan.settings = cfs);
+      }
+
+      //
       // Power-Loss Recovery
       //
       {

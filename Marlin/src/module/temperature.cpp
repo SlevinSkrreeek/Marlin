@@ -541,6 +541,10 @@ volatile bool Temperature::raw_temps_ready = false;
   int32_t Temperature::mpc_e_position; // = 0
 #endif
 
+#if ENABLED(MPCTEMP)
+  int32_t Temperature::mpc_e_position; // = 0
+#endif
+
 #define TEMPDIR(N) ((TEMP_SENSOR_##N##_RAW_LO_TEMP) < (TEMP_SENSOR_##N##_RAW_HI_TEMP) ? 1 : -1)
 #define TP_CMP(S,A,B) (TEMPDIR(S) < 0 ? ((A)<(B)) : ((A)>(B)))
 
