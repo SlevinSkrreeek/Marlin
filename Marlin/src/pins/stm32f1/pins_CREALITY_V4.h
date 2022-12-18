@@ -333,26 +333,3 @@
   #define TMC_BAUD_RATE 19600
 
 #endif
-
-// Pins for documentation and sanity checks only.
-// Changing these will not change the pin they are on.
-
-// Hardware UART pins
-#define UART1_TX_PIN                        PA9   // default uses CH340 RX
-#define UART1_RX_PIN                        PA10  // default uses CH340 TX
-#define UART2_TX_PIN                        PA2   // default uses HEATER_BED_PIN
-#define UART2_RX_PIN                        PA3   // not connected
-#define UART3_TX_PIN                        PB10  // default uses LCD connector
-#define UART3_RX_PIN                        PB11  // default uses LCD connector
-#define UART4_TX_PIN                        PC10  // default uses sdcard SDIO_D2
-#define UART4_RX_PIN                        PC11  // default uses sdcard SDIO_D3
-#define UART5_TX_PIN                        PC12  // default uses sdcard SDIO_CK
-#define UART5_RX_PIN                        PD2   // default uses sdcard SDIO_CMD
-
-// SDIO pins
-#define SDIO_D0_PIN                         PC8
-#define SDIO_D1_PIN                         PC9
-#define SDIO_D2_PIN                         PC10
-#define SDIO_D3_PIN                         PC11
-#define SDIO_CK_PIN                         PC12
-#define SDIO_CMD_PIN                        PD2
