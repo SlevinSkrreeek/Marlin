@@ -195,6 +195,8 @@ typedef struct {     bool NUM_AXIS_LIST(X:1, Y:1, Z:1, I:1, J:1, K:1, U:1, V:1, 
 
 // Defaults for reset / fill in on load
 static const uint32_t   _DMA[] PROGMEM = DEFAULT_MAX_ACCELERATION;
+static const float     _DASU[] PROGMEM = DEFAULT_AXIS_STEPS_PER_UNIT;
+static const feedRate_t _DMF[] PROGMEM = DEFAULT_MAX_FEEDRATE;
 
 /**
  * Current EEPROM Layout
@@ -1097,7 +1099,7 @@ void MarlinSettings::postprocess() {
     {
       _FIELD_TEST(bedPID);
       #if ENABLED(PIDTEMPBED)
-        const PID_t &pid = thermalManager.temp_bed.pid;
+        const auto &pid = thermalManager.temp_bed.pid;
         const raw_pid_t bed_pid = { pid.p(), pid.i(), pid.d() };
       #else
         const raw_pid_t bed_pid = { NAN, NAN, NAN };
@@ -1111,7 +1113,7 @@ void MarlinSettings::postprocess() {
     {
       _FIELD_TEST(chamberPID);
       #if ENABLED(PIDTEMPCHAMBER)
-        const PID_t &pid = thermalManager.temp_chamber.pid;
+        const auto &pid = thermalManager.temp_chamber.pid;
         const raw_pid_t chamber_pid = { pid.p(), pid.i(), pid.d() };
       #else
         const raw_pid_t chamber_pid = { NAN, NAN, NAN };
